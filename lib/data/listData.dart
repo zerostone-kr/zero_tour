@@ -7,7 +7,7 @@ class Item {
   Item(this.title, this.value);
 }
 
-// 시군구코드  샘플은 서울지역의 코드임
+// 시군구코드  샘플은 서울지역의 코드입니다.
 class Area {
   List<DropdownMenuItem<Item>> seoulArea = List.empty(growable: true);
   Area() {
