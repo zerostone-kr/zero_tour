@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "650388972921",
+    "firebase_url": "https://zerotour-3c3d2-default-rtdb.firebaseio.com",
+    "project_id": "zerotour-3c3d2",
+    "storage_bucket": "zerotour-3c3d2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:650388972921:android:2cf283bf490d1439113ba8",
+        "android_client_info": {
+          "package_name": "dev.zerostone.zero_tour"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "650388972921-8c9fpmt120fbefseiu8rio9ck6ci9f99.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP7NTpZWdgoEYb9MpdUTKMowO07vppmpg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "650388972921-8c9fpmt120fbefseiu8rio9ck6ci9f99.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
