@@ -1,11 +1,14 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:zero_tour/main/favoritePage.dart';
 import 'package:zero_tour/main/mapPage.dart';
 import 'package:zero_tour/main/settingPage.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+  // const MainPage({Key? key}) : super(key: key);
+  final Future<Database> database;
+  MainPage(this.database);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -38,8 +41,20 @@ class _MainPageState extends State<MainPage>
     id = ModalRoute.of(context)!.settings.arguments as String?;
     return Scaffold(
       body: TabBarView(
-        children: [MapPage(), FavoritePage(), SettingPage()],
         controller: controller,
+        children: [
+          MapPage(
+            databaseReference: reference,
+            db: widget.database,
+            id: id,
+          ),
+          FavoritePage(
+            databaseReference: reference,
+            db: widget.database,
+            id: id,
+          ),
+          SettingPage()
+        ],
       ),
       bottomNavigationBar: TabBar(
         tabs: const [

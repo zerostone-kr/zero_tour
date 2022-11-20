@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:zero_tour/data/listData.dart';
+import 'package:zero_tour/data/tour.dart';
+import 'package:zero_tour/main/tourDetailPage.dart';
 
-import '../data/listData.dart';
-import '../data/tour.dart';
+import '../API/apiCall.dart';
+import '../API/httpClientApi.dart';
 
 class MapPage extends StatefulWidget {
   // const MapPage({Key? key}) : super(key: key);
@@ -59,21 +64,26 @@ class _MapPageState extends State<MapPage> {
       required int contentTypeId,
       required int page}) async {
     var url =
-        'ttps://apis.data.go.kr/B551011/KorService/areaBasedList?serviceKey=$authKey&numOfRows=10&pageNo=$page&MobileOS=ETC&MobileApp=AppTest&_type=json&listYN=Y&arrange=C&areaCode=1&sigunguCode=$area';
+        'https://apis.data.go.kr/B551011/KorService/areaBasedList?serviceKey=$authKey&numOfRows=10&pageNo=$page&MobileOS=ETC&MobileApp=AppTest&_type=json&listYN=Y&arrange=C&areaCode=1&sigunguCode=$area';
     if (contentTypeId != 0) {
       url = url + '&contentTypeId=$contentTypeId';
     }
 
-    var response = await http.get(Uri.parse(url));
-    String body = utf8.decode(response.bodyBytes);
+    print(url);
+
+    // var response = await http.get(Uri.parse(url));
+    // String body = utf8.decode(response.bodyBytes);
+
+    String body = await getHttpClientGetApi(url);
     print(body);
+
     var json = jsonDecode(body);
     if (json['response']['header']['resultCode'] == "0000") {
       if (json['response']['body']['item'] == '') {
         showDialog(
             context: context,
             builder: (context) {
-              return AlertDialog(
+              return const AlertDialog(
                 content: Text('마지막 데이터 입니다.'),
               );
             });
@@ -107,10 +117,12 @@ class _MapPageState extends State<MapPage> {
       body: Container(
         child: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  DropdownButton(
+                  DropdownButton<Item>(
                     items: list,
                     onChanged: (value) {
                       Item selectedItem = value!;
@@ -120,18 +132,20 @@ class _MapPageState extends State<MapPage> {
                     },
                     value: area,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 10,
                   ),
-                  DropdownButton(
-                      items: sublist,
-                      onChanged: (value) {
-                        Item selectItem = value!;
-                        setState(() {
-                          kind = selectItem;
-                        });
-                      }),
-                  SizedBox(
+                  DropdownButton<Item>(
+                    items: sublist,
+                    onChanged: (value) {
+                      Item selectItem = value!;
+                      setState(() {
+                        kind = selectItem;
+                      });
+                    },
+                    value: kind,
+                  ),
+                  const SizedBox(
                     width: 10,
                   ),
                   ElevatedButton(
@@ -143,53 +157,98 @@ class _MapPageState extends State<MapPage> {
                           contentTypeId: kind!.value,
                           page: page);
                     },
-                    child: Text(
-                      '검색하기',
-                      style: TextStyle(color: Colors.white),
-                    ),
                     style: ButtonStyle(
                         backgroundColor:
                             MaterialStateProperty.all(Colors.blueAccent)),
+                    child: const Text(
+                      '검색하기',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
               ),
               Expanded(
-                child: ListView.builder(itemBuilder: (context, index) {
-                  return Card(
-                    child: InkWell(
-                      child: Row(
-                        children: [
-                          Hero(
-                              tag: 'tourinfo$index',
-                              child: Container(
-                                  margin: EdgeInsets.all(10),
-                                  width: 100.0,
-                                  height: 100.0,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: Colors.black, width: 1),
-                                    image: DecorationImage(
-                                      fit: BoxFit.fill,
-                                      image:
-                                          getImage(tourData[index].imagePath),
-                                    ),
-                                  ))),
-                          SizedBox(
-                            width: 20,
-                          ),
-                        ],
-                        mainAxisAlignment: MainAxisAlignment.start,
+                child: ListView.builder(
+                  itemBuilder: (context, index) {
+                    return Card(
+                      child: InkWell(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Hero(
+                                tag: 'tourinfo$index',
+                                child: Container(
+                                    margin: EdgeInsets.all(10),
+                                    width: 100.0,
+                                    height: 100.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.rectangle,
+                                      border: Border.all(
+                                          color: Colors.black, width: 1),
+                                      image: DecorationImage(
+                                        fit: BoxFit.fill,
+                                        image:
+                                            getImage(tourData[index].imagePath),
+                                      ),
+                                    ))),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width - 150,
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(
+                                    tourData[index].title!,
+                                    style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text('주소 : ${tourData[index].address}'),
+                                  tourData[index].tel != null
+                                      ? Text('전화번호 : ${tourData[index].tel}')
+                                      : Container(),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => TourDetailPage(
+                                    tourData: tourData[index],
+                                    index: index,
+                                    databaseReference: widget.databaseReference,
+                                    id: widget.id,
+                                  )));
+                        },
+                        onDoubleTap: () {
+                          insertTour(widget.db!, tourData[index]);
+                        },
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  },
+                  itemCount: tourData.length,
+                  controller: _scrollController,
+                ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void insertTour(Future<Database> db, TourData info) async {
+    final Database database = await db;
+    await database
+        .insert('place', info.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace)
+        .then((value) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('즐겨찾기에 추가되었습니다.')));
+    });
   }
 }
